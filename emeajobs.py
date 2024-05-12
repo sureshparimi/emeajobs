@@ -41,6 +41,8 @@ def main():
     job_title = st.sidebar.text_input("Enter Job Title", "").strip()
     location = st.sidebar.text_input("Enter Location", "").strip()
     visa_relocation_filter = st.sidebar.checkbox("Visa/Relocation", value=False)
+    # Add a link to join WhatsApp community in the sidebar
+    st.sidebar.markdown("[Join our WhatsApp community](https://chat.whatsapp.com/BcUJsbRxWX8C8ipOweUso5)")
 
     job_data = fetch_job_data(db)
     df = pd.DataFrame(job_data)
