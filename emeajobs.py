@@ -43,7 +43,15 @@ def main():
     visa_relocation_filter = st.sidebar.checkbox("Visa/Relocation", value=False)
     # Add a link to join WhatsApp community in the sidebar
     st.sidebar.markdown("[Join our WhatsApp community](https://chat.whatsapp.com/BcUJsbRxWX8C8ipOweUso5)")
-
+   # Developer details box
+    st.sidebar.header("Developer details")
+    st.sidebar.markdown("""
+    <div style="border-radius: 15px; background-color: #f0f0f0; padding: 10px; margin-bottom: 10px;">
+        <h3>Developer Name: Suresh Parimi</h3>
+        <p><a href="https://linkedin.com/in/sparimi" target="_blank">Linkedin</a></p>
+        <p>Location: Amsterdam, Netherlands</p>
+    </div>
+    """, unsafe_allow_html=True)
     job_data = fetch_job_data(db)
     df = pd.DataFrame(job_data)
 
