@@ -3,6 +3,20 @@ import re
 from google.cloud import firestore
 import pandas as pd
 
+st.markdown(
+   """
+<style>
+   .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+   .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+   .viewerBadge_text__1JaDK {
+       display: none;
+   }
+</style>
+   """,
+   unsafe_allow_html=
+True
+)
+
 # Function to extract email addresses from text using regex
 def extract_emails(text):
     return re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
