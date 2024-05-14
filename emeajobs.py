@@ -13,20 +13,12 @@ def check_visa_relocation(text):
     text = text.lower()
     return 'Yes' if 'visa sponsorship' in text or 'relocation' in text else 'No'
 
-# Function to check if job was posted "x months ago"
-def check_very_old(posted_time):
-    if 'month' in posted_time:
-        months_ago = int(posted_time.split()[0])
-        if months_ago >= 1:
-            return True
-    return False
-
-# Initialize Firestore client
 # Initialize Firestore client
 def initialize_firestore():
     secrets = st.secrets["firebase_config"]
     db = firestore.Client.from_service_account_info(secrets)
     return db
+
 
 # Function to fetch job data from Firestore
 def fetch_job_data(db):
@@ -105,6 +97,46 @@ def highlight_emails(contact_info):
         highlighted_contact = highlighted_contact.replace(email, f'<a href="mailto:{email}" style="color: blue;">{email}</a>')
     return highlighted_contact
 
+# Function to display contact card
+def display_contact_card():
+    st.sidebar.markdown(
+        """
+        <div style="border: 2px solid #6A0DAD; border-radius: 10px; padding: 10px;">
+            <h3 style="color: white; background-color: #6A0DAD; padding: 5px; border-top-left-radius: 10px; border-top-right-radius: 10px; text-align: center;">Contact</h3>
+            <div style="padding: 10px;">
+                <p style="color: black;"><b>Developer Name:</b> Suresh Parimi</p>
+                <div style="border: 2px solid #8E44AD; border-radius: 10px; padding: 10px; margin-top: 10px;">
+                    <h4 style="color: #6A0DAD;">Connect with me:</h4>
+                    <p><a href="https://linkedin.com/in/sparimi" target="_blank" style="color: #6A0DAD; text-decoration: none;">Linkedin</a></p>
+                    <p><a href="https://medium.com/@zerofloor" target="_blank" style="color: #6A0DAD; text-decoration: none;">Medium</a></p>
+                    <p><a href="https://wa.me/+31616270233" target="_blank" style="color: #6A0DAD; text-decoration: none;">Whatsapp</a></p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# Function to display insights card
+def display_insights_card(total_jobs, visa_relocation_jobs):
+    st.sidebar.markdown(
+        f"""
+        <div style="border: 2px solid #6A0DAD; border-radius: 10px; padding: 10px;">
+            <h3 style="color: white; background-color: #6A0DAD; padding: 5px; border-top-left-radius: 10px; border-top-right-radius: 10px; text-align: center;">Insights</h3>
+            <div style="padding: 10px;">
+                <p style="color: black;"><b>Total Number of Jobs:</b> {total_jobs}</p>
+                <p style="color: black;"><b>Total Number of Jobs with Visa/Relocation Support:</b> {visa_relocation_jobs}</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# Function to check if job was posted "x months ago"
+def check_very_old(posted_time):
+    if 'month' in posted_time:
+        months_ago = int(posted_time.split()[0])
+        if months_ago >= 1:
+            return True
+    return False
+
 # Streamlit App main function
 def main():
     # Initialize Firestore client
@@ -135,6 +167,16 @@ def main():
     # Rearrange columns and reset index
     df = df[['job-title', 'company', 'Visa/Relocation?', 'contact', 'Job_Link', 'location', 'Job_txt', 'posted-time-ago']]
     df.reset_index(drop=True, inplace=True)
+
+    # Display the contact card in the sidebar
+    display_contact_card()
+    
+    # Calculate insights
+    total_jobs = len(df)
+    visa_relocation_jobs = (df['Visa/Relocation?'] == 'Yes').sum()
+
+    # Display insights card
+    display_insights_card(total_jobs, visa_relocation_jobs)
 
     # Display the cards
     display_cards(df)
