@@ -3,6 +3,28 @@ import re
 import json
 from google.cloud import firestore
 import pandas as pd
+import streamlit.components.v1 as components
+
+# # Set the page configuration
+st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='auto')
+
+# Embed the custom HTML to initialize Firebase
+components.html(
+    """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Firebase Integration</title>
+        <script type="module" src="static/firebase_init.js"></script>
+    </head>
+    <body>
+        <h1>Welcome to EMEA Jobs!</h1>
+    </body>
+    </html>
+    """,
+    height=600,
+)
 
 # Function to extract email addresses from text using regex
 def extract_emails(text):
@@ -15,10 +37,12 @@ def check_visa_relocation(text):
 
 # Initialize Firestore client
 def initialize_firestore():
-    secrets = st.secrets["firebase_config"]
+    # Load the secrets from the secrets.json file
+    with open('secrets.json') as f:
+        secrets = json.load(f)
+    # Initialize Firestore with the service account information
     db = firestore.Client.from_service_account_info(secrets)
     return db
-
 
 # Function to fetch job data from Firestore
 def fetch_job_data(db):
@@ -128,7 +152,6 @@ def display_insights_card(total_jobs, visa_relocation_jobs):
         </div>
         """, unsafe_allow_html=True)
 
-
 # Function to check if job was posted "x months ago"
 def check_very_old(posted_time):
     if 'month' in posted_time:
@@ -139,10 +162,11 @@ def check_very_old(posted_time):
 
 # Streamlit App main function
 def main():
+    
+    
     # Initialize Firestore client
     db = initialize_firestore()
 
-    st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='auto')
     st.sidebar.header("Filter Jobs")
     job_title = st.sidebar.text_input("Enter Job Title", "").strip()
     location = st.sidebar.text_input("Enter Location", "").strip()
