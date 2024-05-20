@@ -3,39 +3,41 @@ import re
 import json
 from google.cloud import firestore
 import pandas as pd
+import streamlit.components.v1 as components
+
+# # Set the page configuration
+st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='auto')
+# Title of the page
+st.title("Handpicked Jobs in Europe")
+
 # Function to extract email addresses from text using regex
 def extract_emails(text):
     return re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
+
 # Function to check if job description contains visa sponsorship or relocation
 def check_visa_relocation(text):
     text = text.lower()
     return 'Yes' if 'visa sponsorship' in text or 'relocation' in text else 'No'
 
-# Function to check if job was posted "x months ago"
-def check_very_old(posted_time):
-    if 'month' in posted_time:
-        months_ago = int(posted_time.split()[0])
-        if months_ago >= 1:
-            return True
-    return False
-
-# Initialize Firestore client
 # Initialize Firestore client
 def initialize_firestore():
-    secrets = st.secrets["firebase_config"]
+    # Load the secrets from the secrets.json file
+    with open('secrets.json') as f:
+        secrets = json.load(f)
+    # Initialize Firestore with the service account information
     db = firestore.Client.from_service_account_info(secrets)
     return db
-
 
 # Function to fetch job data from Firestore
 def fetch_job_data(db):
     job_data = []
-    collection_ref = db.collection("linkedinjobs")
+    collection_ref = db.collection("emeajobs")
     docs = collection_ref.stream()
     for doc in docs:
         doc_data = doc.to_dict()
         job_data.extend(doc_data.get("jobs", []))
     return job_data
+
 # Function to filter DataFrame based on user input
 def filter_dataframe(df, job_title, location, visa_relocation_filter):
     if job_title:
@@ -45,11 +47,13 @@ def filter_dataframe(df, job_title, location, visa_relocation_filter):
     if visa_relocation_filter:
         df = df[df['Visa/Relocation?'] == 'Yes']
     return df
+
 # Function to display rows as cards
 def display_cards(df):
     num_cols = 4  # Number of cards per row
     num_rows = len(df) // num_cols + (len(df) % num_cols > 0)
     colors = ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#95a5a6']
+
     for i in range(num_rows):
         cols = st.columns(num_cols)
         for j in range(num_cols):
@@ -60,15 +64,18 @@ def display_cards(df):
                     contact_info = df.loc[idx, 'contact'] if df.loc[idx, 'contact'] else "No direct contact available"
                     background_color = colors[idx % len(colors)]
                     posted_time_ago = df.loc[idx, 'posted-time-ago']
+
                     if check_very_old(posted_time_ago):
                         ticker_style = "background-color: #ffcccc; color: #ff3333; border-radius: 20px; padding: 5px 10px;"
                         posted_time_ago = "Very Old"
                     else:
                         ticker_style = ""
+
                     if df.loc[idx, 'Visa/Relocation?'] == 'Yes':
                         visa_relocation_style = f"background-color: #2ecc71; color: white; border-radius: 20px; padding: 5px 10px;"
                     else:
                         visa_relocation_style = ""
+
                     card_content = f"""
                         <div style="border: 2px solid #3498db; border-radius: 10px; padding: 20px; margin: 10px; background-color: #f4f6f7;">
                             <div style="background-color: {background_color}; border-radius: 10px 10px 0 0; padding: 10px;">
@@ -88,6 +95,7 @@ def display_cards(df):
                     """
                     
                     st.markdown(card_content, unsafe_allow_html=True)
+
 # Function to highlight email addresses in the contact field
 def highlight_emails(contact_info):
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -128,7 +136,6 @@ def display_insights_card(total_jobs, visa_relocation_jobs):
         </div>
         """, unsafe_allow_html=True)
 
-
 # Function to check if job was posted "x months ago"
 def check_very_old(posted_time):
     if 'month' in posted_time:
@@ -139,31 +146,39 @@ def check_very_old(posted_time):
 
 # Streamlit App main function
 def main():
+    
+    
     # Initialize Firestore client
     db = initialize_firestore()
-    st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='auto')
+
     st.sidebar.header("Filter Jobs")
     job_title = st.sidebar.text_input("Enter Job Title", "").strip()
     location = st.sidebar.text_input("Enter Location", "").strip()
     visa_relocation_filter = st.sidebar.checkbox("Visa/Relocation", value=False)
+
     job_data = fetch_job_data(db)
     df = pd.DataFrame(job_data)
+
     # Drop rows with missing values and duplicates
     df.dropna(inplace=True)
     df.drop_duplicates(inplace=True)
+
     # Extract email addresses and create 'contact' column
     df['contact'] = df['Job_txt'].apply(lambda x: ', '.join(extract_emails(x)))
+
     # Check for visa sponsorship or relocation
     df['Visa/Relocation?'] = df['Job_txt'].apply(check_visa_relocation)
+
     # Filter DataFrame based on user input
     df = filter_dataframe(df, job_title, location, visa_relocation_filter)
+
     # Rearrange columns and reset index
     df = df[['job-title', 'company', 'Visa/Relocation?', 'contact', 'Job_Link', 'location', 'Job_txt', 'posted-time-ago']]
     df.reset_index(drop=True, inplace=True)
 
     # Display the contact card in the sidebar
     display_contact_card()
-
+    
     # Calculate insights
     total_jobs = len(df)
     visa_relocation_jobs = (df['Visa/Relocation?'] == 'Yes').sum()
