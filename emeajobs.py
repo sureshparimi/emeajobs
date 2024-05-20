@@ -22,8 +22,7 @@ def check_visa_relocation(text):
 # Initialize Firestore client
 def initialize_firestore():
     # Load the secrets from the secrets.json file
-    with open('secrets.json') as f:
-        secrets = json.load(f)
+    secrets = st.secrets["firebase_config"]
     # Initialize Firestore with the service account information
     db = firestore.Client.from_service_account_info(secrets)
     return db
