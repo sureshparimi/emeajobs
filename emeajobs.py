@@ -5,7 +5,7 @@ from google.cloud import firestore
 import pandas as pd
 
 # Set the page configuration
-st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='auto')
+st.set_page_config(page_title='Jobs in EU', page_icon="💼", layout='wide', initial_sidebar_state='collapsed')
 # Title of the page
 st.title("Handpicked Jobs in Europe")
 
