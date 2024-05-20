@@ -13,7 +13,6 @@ st.title("Handpicked Jobs in Europe")
 def extract_emails(text):
     return re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
 
-# Initialize Firestore client
 def initialize_firestore():
     # Load the secrets from the secrets.json file
     secrets = st.secrets["firebase_config"]
@@ -35,7 +34,7 @@ def fetch_job_data(db):
 def display_cards(df):
     num_cols = 4  # Number of cards per row
     num_rows = len(df) // num_cols + (len(df) % num_cols > 0)
-    colors = ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#95a5a6']
+    colors = ['#FAD02E', '#33A1DE', '#F05365', '#85BB65', '#AA5FB3', '#FF8C42', '#0F9D58', '#4FC3F7', '#F06292']
 
     card_style = """
         <style>
@@ -48,12 +47,24 @@ def display_cards(df):
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+                height: auto;
+                width: 300px; /* Increase the width as needed */
             }
             .card h3 {
                 color: white;
+                padding: 10px;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+                margin-top: -20px;
             }
             .card p {
                 color: #7f8c8d;
+            }
+            .card .description {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding: 10px;
             }
             .card .header {
                 border-radius: 10px 10px 0 0;
@@ -90,13 +101,11 @@ def display_cards(df):
 
                     card_content = f"""
                         <div class="card">
-                            <div class="header" style="background-color: {background_color};">
-                                <h3>{df.loc[idx, 'job-title']}</h3>
-                            </div>
+                            <h3 style="background-color: {background_color};">{df.loc[idx, 'job-title']}</h3>
                             <p><b>Company:</b> {df.loc[idx, 'company']}</p>
                             <p><b>Location:</b> {df.loc[idx, 'location']}</p>
                             <p><b>Date Posted:</b> {df.loc[idx, 'posted-time-ago']}</p>
-                            <p><b>Job Description:</b> {df.loc[idx, 'Job_txt'][:50]}...</p>
+                            <div class="description">{df.loc[idx, 'Job_txt'][:100]}...</div>
                             <p><b>Contact:</b> {highlight_emails(contact_info)}</p>
                             <div style="{ticker_style}">{posted_time_ago}</div>
                             <a href="{job_link}" target="_blank"><div class="footer"><b>Click here to view the job</b></div></a>
@@ -104,6 +113,7 @@ def display_cards(df):
                     """
 
                     st.markdown(card_content, unsafe_allow_html=True)
+
 
 # Function to highlight email addresses in the contact field
 def highlight_emails(contact_info):
