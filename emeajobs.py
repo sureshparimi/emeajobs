@@ -30,7 +30,6 @@ def fetch_job_data(db):
         job_data.extend(doc_data.get("jobs", []))
     return job_data
 
-# Function to display rows as cards
 def display_cards(df):
     num_cols = 4  # Number of cards per row
     num_rows = len(df) // num_cols + (len(df) % num_cols > 0)
@@ -49,6 +48,9 @@ def display_cards(df):
                 flex-direction: column;
                 height: auto;
                 width: 300px; /* Increase the width as needed */
+                margin-bottom: 20px; /* Add margin to separate cards vertically */
+                margin-right: 20px; /* Add margin to separate cards horizontally */
+                padding-bottom: 10px; /* Add padding to separate cards horizontally */
             }
             .card h3 {
                 color: white;
@@ -113,7 +115,6 @@ def display_cards(df):
                     """
 
                     st.markdown(card_content, unsafe_allow_html=True)
-
 
 # Function to highlight email addresses in the contact field
 def highlight_emails(contact_info):
